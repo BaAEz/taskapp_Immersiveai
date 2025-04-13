@@ -13,7 +13,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField
+  TextField,
+  Paper
 } from '@mui/material';
 import TaskForm from '../components/TaskForm';
 import TaskList from '../components/TaskList';
@@ -124,57 +125,92 @@ export default function Dashboard() {
   }
 
   return (
-    <Container maxWidth="md">
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        mb: 4,
-        pt: 2
-      }}>
-        <Typography variant="h4">Task Manager</Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Typography variant="subtitle1">Hello, {user?.email}</Typography>
-          <Button onClick={logout} variant="outlined" color="secondary">
-            Logout
-          </Button>
-        </Box>
-      </Box>
+    <Box sx={{ 
+      minHeight: '100vh',
+      background: (theme) => `${theme.palette.background.default} radial-gradient(circle at 90% 10%, ${theme.palette.primary.light}22 0%, transparent 50%)`,
+      pt: 4,
+      pb: 6,
+    }}>
+      <Container maxWidth="md">
+        <Paper 
+          elevation={0} 
+          sx={{ 
+            p: 4,
+            backgroundColor: 'background.paper',
+            backgroundImage: 'linear-gradient(rgba(255,255,255,.9), rgba(255,255,255,.9))',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid',
+            borderColor: 'primary.light',
+            borderRadius: 3,
+          }}
+        >
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center', 
+            mb: 4
+          }}>
+            <Typography variant="h4" sx={{ fontWeight: 600 }}>Task Manager</Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Typography variant="subtitle1" sx={{ color: 'text.secondary' }}>
+                {user?.email}
+              </Typography>
+              <Button 
+                onClick={logout} 
+                variant="outlined" 
+                color="secondary"
+                sx={{ 
+                  borderRadius: 2,
+                  px: 3
+                }}
+              >
+                Logout
+              </Button>
+            </Box>
+          </Box>
 
-      <TaskForm onAddTask={handleAddTask} />
-      
-      <TaskList 
-        tasks={tasks}
-        onToggleTask={handleToggleTask}
-        onDeleteTask={handleDeleteTask}
-        onEditTask={handleEditClick}
-      />
-
-      <Dialog open={Boolean(editingTask)} onClose={() => setEditingTask(null)}>
-        <DialogTitle>Edit Task</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Task Title"
-            type="text"
-            fullWidth
-            variant="standard"
-            value={editTitle}
-            onChange={(e) => setEditTitle(e.target.value)}
+          <TaskForm onAddTask={handleAddTask} />
+          
+          <TaskList 
+            tasks={tasks}
+            onToggleTask={handleToggleTask}
+            onDeleteTask={handleDeleteTask}
+            onEditTask={handleEditClick}
           />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditingTask(null)}>Cancel</Button>
-          <Button onClick={handleEditSave}>Save</Button>
-        </DialogActions>
-      </Dialog>
+        </Paper>
 
-      <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError(null)}>
-        <Alert onClose={() => setError(null)} severity="error">
-          {error}
-        </Alert>
-      </Snackbar>
-    </Container>
+        <Dialog 
+          open={Boolean(editingTask)} 
+          onClose={() => setEditingTask(null)}
+          PaperProps={{
+            sx: { borderRadius: 3, p: 2 }
+          }}
+        >
+          <DialogTitle>Edit Task</DialogTitle>
+          <DialogContent>
+            <TextField
+              autoFocus
+              margin="dense"
+              label="Task Title"
+              type="text"
+              fullWidth
+              variant="standard"
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setEditingTask(null)}>Cancel</Button>
+            <Button onClick={handleEditSave}>Save</Button>
+          </DialogActions>
+        </Dialog>
+
+        <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError(null)}>
+          <Alert onClose={() => setError(null)} severity="error">
+            {error}
+          </Alert>
+        </Snackbar>
+      </Container>
+    </Box>
   );
 }

@@ -5,7 +5,8 @@ import {
   Checkbox,
   IconButton,
   Typography,
-  Paper
+  Paper,
+  Box
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -37,45 +38,76 @@ const TaskList = ({
   }
 
   return (
-    <List sx={{ width: '100%', bgcolor: 'background.paper', mt: 2 }}>
-      {tasks.map((task) => (
-        <ListItem
-          key={task._id}
-          secondaryAction={
-            <>
-              <IconButton 
-                edge="end" 
-                onClick={() => onEditTask(task)}
-                sx={{ mr: 1 }}
-              >
-                <EditIcon />
-              </IconButton>
-              <IconButton 
-                edge="end" 
-                onClick={() => onDeleteTask(task._id)}
-                color="error"
-              >
-                <DeleteIcon />
-              </IconButton>
-            </>
-          }
-          sx={{
-            borderBottom: '1px solid #eee',
-            textDecoration: task.isCompleted ? 'line-through' : 'none',
-            opacity: task.isCompleted ? 0.7 : 1
-          }}
-        >
-          <Checkbox
-            checked={task.isCompleted || false}
-            onChange={(e) => onToggleTask(task._id, e.target.checked)}
-            sx={{ mr: 2 }}
-          />
-          <ListItemText
-            primary={task.title || 'Untitled Task'}
-          />
-        </ListItem>
-      ))}
-    </List>
+    <Paper 
+      elevation={0} 
+      sx={{ 
+        borderRadius: 2, 
+        overflow: 'hidden',
+        border: '1px solid',
+        borderColor: 'primary.light',
+        background: 'linear-gradient(rgba(255,255,255,.8), rgba(255,255,255,.9))',
+      }}
+    >
+      <List sx={{ width: '100%', bgcolor: 'transparent', p: 0 }}>
+        {tasks.map((task) => (
+          <ListItem
+            key={task._id}
+            secondaryAction={
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <IconButton 
+                  onClick={() => onEditTask(task)}
+                  sx={{ 
+                    color: 'primary.main',
+                    '&:hover': { backgroundColor: 'primary.light', color: 'white' }
+                  }}
+                >
+                  <EditIcon />
+                </IconButton>
+                <IconButton 
+                  onClick={() => onDeleteTask(task._id)}
+                  sx={{ 
+                    color: 'error.main',
+                    '&:hover': { backgroundColor: 'error.light', color: 'white' }
+                  }}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </Box>
+            }
+            sx={{
+              borderBottom: '1px solid',
+              borderColor: 'primary.light',
+              py: 1.5,
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                background: (theme) => `${theme.palette.primary.light}11`,
+              },
+              textDecoration: task.isCompleted ? 'line-through' : 'none',
+              opacity: task.isCompleted ? 0.7 : 1
+            }}
+          >
+            <Checkbox
+              checked={task.isCompleted || false}
+              onChange={(e) => onToggleTask(task._id, e.target.checked)}
+              sx={{ 
+                color: 'primary.main',
+                '&.Mui-checked': {
+                  color: 'primary.main',
+                }
+              }}
+            />
+            <ListItemText
+              primary={task.title || 'Untitled Task'}
+              sx={{
+                '& .MuiTypography-root': {
+                  fontWeight: 500,
+                }
+              }}
+            />
+          </ListItem>
+        ))}
+      </List>
+    </Paper>
   );
 };
 

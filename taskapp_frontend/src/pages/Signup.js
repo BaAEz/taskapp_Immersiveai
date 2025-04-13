@@ -54,94 +54,116 @@ export default function Signup() {
   }
 
   return (
-    <Container maxWidth="sm">
-      <Box sx={{ 
-        display: 'flex', 
-        flexDirection: 'column', 
-        alignItems: 'center', 
-        justifyContent: 'center',
-        minHeight: '100vh',
-        py: 4
-      }}>
-        <Paper elevation={3} sx={{ 
-          p: 4, 
-          width: '100%',
-          maxWidth: 400
-        }}>
-          <Typography 
-            variant="h4" 
-            component="h1" 
-            gutterBottom 
-            sx={{ textAlign: 'center', mb: 3 }}
-          >
-            Create Account
-          </Typography>
-          
-          {error && (
-            <Alert severity="error" sx={{ mb: 3 }}>
-              {error}
-            </Alert>
-          )}
-
-          <form onSubmit={handleSubmit}>
-            <TextField
-              label="Email Address"
-              type="email"
-              fullWidth
-              margin="normal"
-              variant="outlined"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-            />
-            <TextField
-              label="Password"
-              type="password"
-              fullWidth
-              margin="normal"
-              variant="outlined"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete="new-password"
-              inputProps={{ minLength: 6 }}
-            />
-            <Button 
-              type="submit" 
-              variant="contained" 
-              fullWidth 
-              size="large"
-              sx={{ mt: 3, py: 1.5 }}
-              disabled={loading}
-            >
-              {loading ? <CircularProgress size={24} /> : 'Sign Up'}
-            </Button>
-          </form>
-
-          <Typography 
-            variant="body2" 
-            sx={{ 
-              mt: 3, 
-              textAlign: 'center',
-              color: 'text.secondary'
-            }}
-          >
-            Already have an account?{' '}
-            <Link 
-              to="/login" 
-              style={{ 
-                color: 'inherit',
-                fontWeight: 500,
-                textDecoration: 'none',
-                '&:hover': { textDecoration: 'underline' }
+    <Box sx={{ 
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'grey.50',
+      py: 4
+    }}>
+      <Container maxWidth="sm">
+        <Paper 
+          elevation={0} 
+          sx={{ 
+            p: 4,
+            borderRadius: 3,
+            backgroundColor: 'background.paper'
+          }}
+        >
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center'
+          }}>
+            <Typography 
+              variant="h4" 
+              component="h1" 
+              gutterBottom 
+              sx={{ 
+                fontWeight: 600,
+                mb: 4
               }}
             >
-              Log In
-            </Link>
-          </Typography>
+              Create Account
+            </Typography>
+            
+            {error && (
+              <Alert 
+                severity="error" 
+                sx={{ 
+                  mb: 3,
+                  width: '100%',
+                  borderRadius: 2
+                }}
+              >
+                {error}
+              </Alert>
+            )}
+
+            <form onSubmit={handleSubmit} style={{ width: '100%' }}>
+              <TextField
+                label="Email Address"
+                type="email"
+                fullWidth
+                margin="normal"
+                variant="outlined"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+              />
+              <TextField
+                label="Password"
+                type="password"
+                fullWidth
+                margin="normal"
+                variant="outlined"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="new-password"
+                inputProps={{ minLength: 6 }}
+              />
+              <Button 
+                type="submit" 
+                variant="contained" 
+                fullWidth 
+                size="large"
+                sx={{ 
+                  mt: 3,
+                  mb: 2,
+                  py: 1.5,
+                  borderRadius: 2
+                }}
+                disabled={loading}
+              >
+                {loading ? <CircularProgress size={24} /> : 'Sign Up'}
+              </Button>
+            </form>
+
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                mt: 2,
+                color: 'text.secondary'
+              }}
+            >
+              Already have an account? {' '}
+              <Link 
+                to="/login" 
+                style={{ 
+                  color: 'inherit',
+                  fontWeight: 500,
+                  textDecoration: 'none'
+                }}
+              >
+                Log In
+              </Link>
+            </Typography>
+          </Box>
         </Paper>
-      </Box>
-    </Container>
+      </Container>
+    </Box>
   );
 }
