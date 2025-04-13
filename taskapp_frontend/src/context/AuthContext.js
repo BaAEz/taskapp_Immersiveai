@@ -2,6 +2,9 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
+// Configure axios defaults
+axios.defaults.withCredentials = false; // Change to false since we're using '*' origin
+
 const AuthContext = createContext();
 const SERVER_URL = process.env.REACT_APP_SERVER_URL || 'http://localhost:5001'; // Add fallback
 
