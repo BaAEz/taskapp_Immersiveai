@@ -7,8 +7,13 @@ const cors = require('cors');
 
 const app = express();
 
-// Middleware
-app.use(cors());
+// Updated CORS configuration
+app.use(cors({
+  origin: ['http://localhost:3000', 'https://taskapp-immersiveai.vercel.app'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
 app.use(express.json());
 
 // MongoDB Connection
@@ -314,8 +319,8 @@ app.use((err, req, res, next) => {
 });
 
 // Update for Vercel deployment
-const PORT = process.env.PORT || 5001;
-  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+const PORT = process.env.Port;  // Note: using Port from your .env file
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 // Export the Express API
 module.exports = app;

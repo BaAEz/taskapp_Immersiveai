@@ -18,6 +18,8 @@ import {
 import TaskForm from '../components/TaskForm';
 import TaskList from '../components/TaskList';
 
+const SERVER_URL = process.env.REACT_APP_SERVER_URL || 'http://localhost:5001';
+
 export default function Dashboard() {
   const { user, logout, token } = useAuth();
   const [tasks, setTasks] = useState([]);
@@ -38,7 +40,7 @@ export default function Dashboard() {
   // Use useCallback to avoid dependency issues
   const fetchTasks = useCallback(async () => {
     try {
-      const { data } = await axios.get('http://localhost:5001/tasks');
+      const { data } = await axios.get(`${SERVER_URL}/tasks`);
       setTasks(data.tasks || []);
       setError(null);
     } catch (error) {
@@ -58,7 +60,7 @@ export default function Dashboard() {
 
   const handleAddTask = async (title) => {
     try {
-      const { data } = await axios.post('http://localhost:5001/tasks', { title });
+      const { data } = await axios.post(`${SERVER_URL}/tasks`, { title });
       setTasks([...tasks, data.task]);
     } catch (error) {
       console.error('Error adding task:', error);
@@ -71,7 +73,7 @@ export default function Dashboard() {
 
   const handleToggleTask = async (taskId, isCompleted) => {
     try {
-      const { data } = await axios.put(`http://localhost:5001/tasks/${taskId}`, { isCompleted });
+      const { data } = await axios.put(`${SERVER_URL}/tasks/${taskId}`, { isCompleted });
       setTasks(tasks.map(task => task._id === taskId ? data.task : task));
     } catch (error) {
       console.error('Error updating task:', error);
@@ -81,7 +83,7 @@ export default function Dashboard() {
 
   const handleDeleteTask = async (taskId) => {
     try {
-      await axios.delete(`http://localhost:5001/tasks/${taskId}`);
+      await axios.delete(`${SERVER_URL}/tasks/${taskId}`);
       setTasks(tasks.filter(task => task._id !== taskId));
     } catch (error) {
       console.error('Error deleting task:', error);
@@ -97,7 +99,7 @@ export default function Dashboard() {
   const handleEditSave = async () => {
     try {
       await axios.put(
-        `http://localhost:5001/tasks/${editingTask._id}`, 
+        `${SERVER_URL}/tasks/${editingTask._id}`, 
         { title: editTitle }
       );
       setTasks(tasks.map(task => 
