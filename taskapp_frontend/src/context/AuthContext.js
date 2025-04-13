@@ -1,0 +1,70 @@
+import { createContext, useContext, useState, useEffect } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+
+const AuthContext = createContext();
+
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(localStorage.getItem('token'));
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (token) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      // Verify token is still valid
+      verifyToken();
+    } else {
+      delete axios.defaults.headers.common['Authorization'];
+    }
+  }, [token]);
+
+  const verifyToken = async () => {
+    try {
+      await axios.get('http://localhost:5000/verify-token');
+    } catch (error) {
+      if (error.response?.status === 401) {
+        logout();
+      }
+    }
+  };
+
+  const login = async (email, password) => {
+    try {
+      const { data } = await axios.post('http://localhost:5000/login', { email, password });
+      localStorage.setItem('token', data.token);
+      setToken(data.token);
+      setUser(data.user);
+      return data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  };
+
+  const signup = async (email, password) => {
+    try {
+      const { data } = await axios.post('http://localhost:5000/signup', { email, password });
+      localStorage.setItem('token', data.token);
+      setToken(data.token);
+      setUser(data.user);
+      return data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  };
+
+  const logout = () => {
+    localStorage.removeItem('token');
+    setToken(null);
+    setUser(null);
+    navigate('/login');
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, token, login, signup, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => useContext(AuthContext);
