@@ -33,7 +33,6 @@ export default function Signup() {
     
     try {
       await signup(email, password);
-      // User will be automatically redirected via the useEffect above
     } catch (err) {
       setError(err.message || 'Signup failed. Please try again.');
     } finally {
@@ -50,7 +49,7 @@ export default function Signup() {
   }
 
   if (user) {
-    return null; // Brief render before navigation
+    return null;
   }
 
   return (

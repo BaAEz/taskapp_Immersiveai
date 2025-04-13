@@ -7,15 +7,12 @@ const cors = require('cors');
 
 const app = express();
 
-// Simple CORS configuration
 app.use(cors());
 
-// Additional headers
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
-  // Handle preflight
   if ('OPTIONS' === req.method) {
     res.sendStatus(200);
   } else {
@@ -25,7 +22,6 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 
-// MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
@@ -33,7 +29,6 @@ mongoose.connect(process.env.MONGODB_URI, {
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => console.error('MongoDB connection error:', err));
 
-// Models
 const User = mongoose.model('User', new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true }
@@ -45,7 +40,6 @@ const Task = mongoose.model('Task', new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
 }));
 
-// Authentication Middleware
 const authenticate = async (req, res, next) => {
   const token = req.header('Authorization')?.replace('Bearer ', '');
   
@@ -76,14 +70,10 @@ const authenticate = async (req, res, next) => {
   }
 };
 
-// Routes
-
-// Health Check
 app.get('/', (req, res) => {
   res.send('Task App API is running');
 });
 
-// Token Verification
 app.get('/verify-token', authenticate, (req, res) => {
   res.json({ 
     success: true,
@@ -91,12 +81,10 @@ app.get('/verify-token', authenticate, (req, res) => {
   });
 });
 
-// User Registration
 app.post('/signup', async (req, res) => {
   try {
     const { email, password } = req.body;
     
-    // Validate input
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -104,7 +92,6 @@ app.post('/signup', async (req, res) => {
       });
     }
 
-    // Check if user exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({
@@ -113,12 +100,10 @@ app.post('/signup', async (req, res) => {
       });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = new User({ email, password: hashedPassword });
     await user.save();
 
-    // Generate token
     const token = jwt.sign(
       { _id: user._id }, 
       process.env.JWT_SECRET,
@@ -139,12 +124,10 @@ app.post('/signup', async (req, res) => {
   }
 });
 
-// User Login
 app.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     
-    // Validate input
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -188,7 +171,6 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// Task Routes (Protected)
 app.get('/tasks', authenticate, async (req, res) => {
   try {
     const tasks = await Task.find({ userId: req.user._id });
@@ -263,34 +245,6 @@ app.put('/tasks/:id', authenticate, async (req, res) => {
   }
 });
 
-app.put('/tasks/:id', authenticate, async (req, res) => {
-  try {
-    const task = await Task.findOneAndUpdate(
-      { _id: req.params.id, userId: req.user._id },
-      req.body,
-      { new: true }
-    );
-    
-    if (!task) {
-      return res.status(404).json({
-        success: false,
-        message: 'Task not found'
-      });
-    }
-    
-    res.json({ 
-      success: true,
-      task 
-    });
-  } catch (err) {
-    console.error('Error updating task:', err);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to update task'
-    });
-  }
-});
-
 app.delete('/tasks/:id', authenticate, async (req, res) => {
   try {
     const task = await Task.findOneAndDelete({ 
@@ -318,7 +272,6 @@ app.delete('/tasks/:id', authenticate, async (req, res) => {
   }
 });
 
-// Error Handling Middleware
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
   res.status(500).json({
@@ -327,9 +280,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Update for Vercel deployment
-const PORT = process.env.Port;  // Note: using Port from your .env file
+const PORT = process.env.Port;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
-// Export the Express API
 module.exports = app;
