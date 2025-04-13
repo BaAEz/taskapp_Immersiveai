@@ -9,6 +9,17 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('token'));
   const navigate = useNavigate();
 
+  // Define verifyToken outside useEffect to avoid the dependency issue
+  const verifyToken = async () => {
+    try {
+      await axios.get('http://localhost:5001/verify-token');
+    } catch (error) {
+      if (error.response?.status === 401) {
+        logout();
+      }
+    }
+  };
+
   useEffect(() => {
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -17,21 +28,11 @@ export const AuthProvider = ({ children }) => {
     } else {
       delete axios.defaults.headers.common['Authorization'];
     }
-  }, [token]);
-
-  const verifyToken = async () => {
-    try {
-      await axios.get('http://localhost:5000/verify-token');
-    } catch (error) {
-      if (error.response?.status === 401) {
-        logout();
-      }
-    }
-  };
+  }, [token, verifyToken]); // Added verifyToken to dependency array
 
   const login = async (email, password) => {
     try {
-      const { data } = await axios.post('http://localhost:5000/login', { email, password });
+      const { data } = await axios.post('http://localhost:5001/login', { email, password });
       localStorage.setItem('token', data.token);
       setToken(data.token);
       setUser(data.user);
@@ -43,7 +44,7 @@ export const AuthProvider = ({ children }) => {
 
   const signup = async (email, password) => {
     try {
-      const { data } = await axios.post('http://localhost:5000/signup', { email, password });
+      const { data } = await axios.post('http://localhost:5001/signup', { email, password });
       localStorage.setItem('token', data.token);
       setToken(data.token);
       setUser(data.user);

@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "server.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "taskapp_frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "build"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/login|/signup|/tasks(.*)|/verify-token",
+      "dest": "server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "taskapp_frontend/build/$1"
+    }
+  ]
+}

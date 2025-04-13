@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { 
@@ -35,9 +35,10 @@ export default function Dashboard() {
     }
   }, [token]);
 
-  const fetchTasks = async () => {
+  // Use useCallback to avoid dependency issues
+  const fetchTasks = useCallback(async () => {
     try {
-      const { data } = await axios.get('http://localhost:5000/tasks');
+      const { data } = await axios.get('http://localhost:5001/tasks');
       setTasks(data.tasks || []);
       setError(null);
     } catch (error) {
@@ -49,15 +50,15 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [logout]);
 
   useEffect(() => {
     fetchTasks();
-  }, []);
+  }, [fetchTasks]); // Added fetchTasks to dependency array
 
   const handleAddTask = async (title) => {
     try {
-      const { data } = await axios.post('http://localhost:5000/tasks', { title });
+      const { data } = await axios.post('http://localhost:5001/tasks', { title });
       setTasks([...tasks, data.task]);
     } catch (error) {
       console.error('Error adding task:', error);
@@ -70,7 +71,7 @@ export default function Dashboard() {
 
   const handleToggleTask = async (taskId, isCompleted) => {
     try {
-      const { data } = await axios.put(`http://localhost:5000/tasks/${taskId}`, { isCompleted });
+      const { data } = await axios.put(`http://localhost:5001/tasks/${taskId}`, { isCompleted });
       setTasks(tasks.map(task => task._id === taskId ? data.task : task));
     } catch (error) {
       console.error('Error updating task:', error);
@@ -80,7 +81,7 @@ export default function Dashboard() {
 
   const handleDeleteTask = async (taskId) => {
     try {
-      await axios.delete(`http://localhost:5000/tasks/${taskId}`);
+      await axios.delete(`http://localhost:5001/tasks/${taskId}`);
       setTasks(tasks.filter(task => task._id !== taskId));
     } catch (error) {
       console.error('Error deleting task:', error);
@@ -95,8 +96,8 @@ export default function Dashboard() {
 
   const handleEditSave = async () => {
     try {
-      const { data } = await axios.put(
-        `http://localhost:5000/tasks/${editingTask._id}`, 
+      await axios.put(
+        `http://localhost:5001/tasks/${editingTask._id}`, 
         { title: editTitle }
       );
       setTasks(tasks.map(task => 
