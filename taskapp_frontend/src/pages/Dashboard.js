@@ -14,8 +14,21 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  Paper
+  Slide,
+  Fade,
+  Chip,
+  Tooltip,
+  IconButton,
+  Select,
+  FormControl,
+  InputLabel,
+  MenuItem,
 } from '@mui/material';
+import {
+  Add as AddIcon,
+  Sort as SortIcon,
+  FilterList as FilterIcon
+} from '@mui/icons-material';
 import TaskForm from '../components/TaskForm';
 import TaskList from '../components/TaskList';
 
@@ -28,8 +41,10 @@ export default function Dashboard() {
   const [error, setError] = useState(null);
   const [editingTask, setEditingTask] = useState(null);
   const [editTitle, setEditTitle] = useState('');
+  const [showAddTask, setShowAddTask] = useState(false);
+  const [sortOrder, setSortOrder] = useState('default');
+  const [filter, setFilter] = useState('all');
 
-  // Configure axios to always send the token
   useEffect(() => {
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -38,7 +53,6 @@ export default function Dashboard() {
     }
   }, [token]);
 
-  // Use useCallback to avoid dependency issues
   const fetchTasks = useCallback(async () => {
     try {
       const { data } = await axios.get(`${SERVER_URL}/tasks`);
@@ -57,18 +71,15 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchTasks();
-  }, [fetchTasks]); // Added fetchTasks to dependency array
+  }, [fetchTasks]);
 
   const handleAddTask = async (title) => {
     try {
       const { data } = await axios.post(`${SERVER_URL}/tasks`, { title });
       setTasks([...tasks, data.task]);
+      setShowAddTask(false);
     } catch (error) {
-      console.error('Error adding task:', error);
       setError(error.response?.data?.message || 'Failed to add task');
-      if (error.response?.status === 401) {
-        logout();
-      }
     }
   };
 
@@ -77,7 +88,6 @@ export default function Dashboard() {
       const { data } = await axios.put(`${SERVER_URL}/tasks/${taskId}`, { isCompleted });
       setTasks(tasks.map(task => task._id === taskId ? data.task : task));
     } catch (error) {
-      console.error('Error updating task:', error);
       setError(error.response?.data?.message || 'Failed to update task');
     }
   };
@@ -87,7 +97,6 @@ export default function Dashboard() {
       await axios.delete(`${SERVER_URL}/tasks/${taskId}`);
       setTasks(tasks.filter(task => task._id !== taskId));
     } catch (error) {
-      console.error('Error deleting task:', error);
       setError(error.response?.data?.message || 'Failed to delete task');
     }
   };
@@ -99,21 +108,34 @@ export default function Dashboard() {
 
   const handleEditSave = async () => {
     try {
-      await axios.put(
-        `${SERVER_URL}/tasks/${editingTask._id}`, 
-        { title: editTitle }
-      );
+      await axios.put(`${SERVER_URL}/tasks/${editingTask._id}`, { title: editTitle });
       setTasks(tasks.map(task => 
         task._id === editingTask._id ? { ...task, title: editTitle } : task
       ));
       setEditingTask(null);
     } catch (error) {
-      console.error('Error updating task:', error);
       setError(error.response?.data?.message || 'Failed to update task');
-      if (error.response?.status === 401) {
-        logout();
-      }
     }
+  };
+
+  const getFilteredAndSortedTasks = () => {
+    let filteredTasks = [...tasks];
+    
+    // Apply filter
+    if (filter === 'completed') {
+      filteredTasks = filteredTasks.filter(task => task.isCompleted);
+    } else if (filter === 'active') {
+      filteredTasks = filteredTasks.filter(task => !task.isCompleted);
+    }
+
+    // Apply sort
+    if (sortOrder === 'asc') {
+      filteredTasks.sort((a, b) => a.title.localeCompare(b.title));
+    } else if (sortOrder === 'desc') {
+      filteredTasks.sort((a, b) => b.title.localeCompare(a.title));
+    }
+
+    return filteredTasks;
   };
 
   if (loading) {
@@ -125,59 +147,129 @@ export default function Dashboard() {
   }
 
   return (
-    <Box sx={{ 
-      minHeight: '100vh',
-      background: (theme) => `${theme.palette.background.default} radial-gradient(circle at 90% 10%, ${theme.palette.primary.light}22 0%, transparent 50%)`,
-      pt: 4,
-      pb: 6,
-    }}>
+    <Box sx={{ py: 4 }}>
       <Container maxWidth="md">
-        <Paper 
-          elevation={0} 
-          sx={{ 
-            p: 4,
-            backgroundColor: 'background.paper',
-            backgroundImage: 'linear-gradient(rgba(255,255,255,.9), rgba(255,255,255,.9))',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid',
-            borderColor: 'primary.light',
-            borderRadius: 3,
-          }}
-        >
-          <Box sx={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center', 
-            mb: 4
-          }}>
-            <Typography variant="h4" sx={{ fontWeight: 600 }}>Task Manager</Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Typography variant="subtitle1" sx={{ color: 'text.secondary' }}>
-                {user?.email}
-              </Typography>
-              <Button 
-                onClick={logout} 
-                variant="outlined" 
-                color="secondary"
-                sx={{ 
-                  borderRadius: 2,
-                  px: 3
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          mb: 4
+        }}>
+          <Typography variant="h4">Your Tasks</Typography>
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <Box sx={{ 
+              display: 'flex', 
+              gap: 1,
+              backgroundColor: 'rgba(63, 81, 181, 0.04)',
+              borderRadius: 3,
+              padding: '4px',
+            }}>
+              <Chip 
+                label={`All (${tasks.length})`}
+                onClick={() => setFilter('all')}
+                color={filter === 'all' ? 'primary' : 'default'}
+                variant={filter === 'all' ? 'filled' : 'outlined'}
+                sx={{
+                  borderRadius: '12px',
+                  '&.MuiChip-filled': {
+                    background: (theme) => theme.palette.gradient.primary,
+                    color: 'white',
+                    boxShadow: '0 2px 8px rgba(63, 81, 181, 0.25)',
+                  },
+                  '&:hover': {
+                    backgroundColor: filter === 'all' ? 'transparent' : 'rgba(63, 81, 181, 0.08)',
+                  },
+                  transition: 'all 0.2s ease-in-out',
+                }}
+              />
+              <Chip 
+                label={`Active (${tasks.filter(t => !t.isCompleted).length})`}
+                onClick={() => setFilter('active')}
+                color={filter === 'active' ? 'primary' : 'default'}
+                variant={filter === 'active' ? 'filled' : 'outlined'}
+                sx={{
+                  borderRadius: '12px',
+                  '&.MuiChip-filled': {
+                    background: (theme) => theme.palette.gradient.primary,
+                    color: 'white',
+                    boxShadow: '0 2px 8px rgba(63, 81, 181, 0.25)',
+                  },
+                  '&:hover': {
+                    backgroundColor: filter === 'active' ? 'transparent' : 'rgba(63, 81, 181, 0.08)',
+                  },
+                  transition: 'all 0.2s ease-in-out',
+                }}
+              />
+              <Chip 
+                label={`Completed (${tasks.filter(t => t.isCompleted).length})`}
+                onClick={() => setFilter('completed')}
+                color={filter === 'completed' ? 'primary' : 'default'}
+                variant={filter === 'completed' ? 'filled' : 'outlined'}
+                sx={{
+                  borderRadius: '12px',
+                  '&.MuiChip-filled': {
+                    background: (theme) => theme.palette.gradient.primary,
+                    color: 'white',
+                    boxShadow: '0 2px 8px rgba(63, 81, 181, 0.25)',
+                  },
+                  '&:hover': {
+                    backgroundColor: filter === 'completed' ? 'transparent' : 'rgba(63, 81, 181, 0.08)',
+                  },
+                  transition: 'all 0.2s ease-in-out',
+                }}
+              />
+            </Box>
+            <Tooltip title="Sort tasks">
+              <IconButton 
+                onClick={() => setSortOrder(order => {
+                  if (order === 'default') return 'asc';
+                  if (order === 'asc') return 'desc';
+                  return 'default';
+                })}
+                color={sortOrder !== 'default' ? 'primary' : 'default'}
+                sx={{
+                  backgroundColor: sortOrder !== 'default' ? 'rgba(63, 81, 181, 0.08)' : 'transparent',
+                  '&:hover': {
+                    backgroundColor: 'rgba(63, 81, 181, 0.12)',
+                  },
                 }}
               >
-                Logout
-              </Button>
-            </Box>
+                <SortIcon />
+              </IconButton>
+            </Tooltip>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => setShowAddTask(true)}
+              sx={{
+                background: (theme) => theme.palette.gradient.primary,
+                boxShadow: '0 2px 8px rgba(63, 81, 181, 0.25)',
+                '&:hover': {
+                  boxShadow: '0 4px 12px rgba(63, 81, 181, 0.35)',
+                },
+              }}
+            >
+              Add Task
+            </Button>
           </Box>
+        </Box>
 
-          <TaskForm onAddTask={handleAddTask} />
-          
-          <TaskList 
-            tasks={tasks}
-            onToggleTask={handleToggleTask}
-            onDeleteTask={handleDeleteTask}
-            onEditTask={handleEditClick}
-          />
-        </Paper>
+        <Slide direction="up" in={showAddTask} mountOnEnter unmountOnExit>
+          <Box sx={{ mb: 4 }}>
+            <TaskForm onAddTask={handleAddTask} />
+          </Box>
+        </Slide>
+
+        <Fade in={true}>
+          <div>
+            <TaskList 
+              tasks={getFilteredAndSortedTasks()}
+              onToggleTask={handleToggleTask}
+              onDeleteTask={handleDeleteTask}
+              onEditTask={handleEditClick}
+            />
+          </div>
+        </Fade>
 
         <Dialog 
           open={Boolean(editingTask)} 
@@ -194,19 +286,28 @@ export default function Dashboard() {
               label="Task Title"
               type="text"
               fullWidth
-              variant="standard"
+              variant="outlined"
               value={editTitle}
               onChange={(e) => setEditTitle(e.target.value)}
             />
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setEditingTask(null)}>Cancel</Button>
-            <Button onClick={handleEditSave}>Save</Button>
+            <Button onClick={handleEditSave} variant="contained">Save</Button>
           </DialogActions>
         </Dialog>
 
-        <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError(null)}>
-          <Alert onClose={() => setError(null)} severity="error">
+        <Snackbar 
+          open={!!error} 
+          autoHideDuration={6000} 
+          onClose={() => setError(null)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert 
+            onClose={() => setError(null)} 
+            severity="error"
+            variant="filled"
+          >
             {error}
           </Alert>
         </Snackbar>

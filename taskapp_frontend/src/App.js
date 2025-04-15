@@ -7,28 +7,34 @@ import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import Navbar from './components/Navbar';
 
 function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{
-        minHeight: '100vh',
-        background: (theme) => theme.palette.background.gradient,
-        backgroundAttachment: 'fixed'
-      }}>
-        <Router>
-          <AuthProvider>
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="*" element={<Navigate to="/" />} />
-            </Routes>
-          </AuthProvider>
-        </Router>
-      </Box>
+      <Router>
+        <AuthProvider>
+          <Box sx={{
+            minHeight: '100vh',
+            display: 'flex',
+            flexDirection: 'column',
+            background: (theme) => theme.palette.background.gradient,
+            backgroundAttachment: 'fixed'
+          }}>
+            <Navbar />
+            <Box component="main" sx={{ flexGrow: 1 }}>
+              <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="*" element={<Navigate to="/" />} />
+              </Routes>
+            </Box>
+          </Box>
+        </AuthProvider>
+      </Router>
     </ThemeProvider>
   );
 }
